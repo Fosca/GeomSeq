@@ -5,7 +5,8 @@
 
 Script to epoch the data after preprocessing
 """
-
+import sys
+sys.path.append("/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq/")
 
 from GeomSeq_functions import epoching_funcs
 from GeomSeq_analyses import config

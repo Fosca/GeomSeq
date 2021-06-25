@@ -36,6 +36,7 @@ def compute_epochs(subject, tmin, tmax, decim=1, reject = None, baseline=None, s
 
     # ---- preprocessed data path ----
     meg_subject_dir = config.data_path+subject+'/processed_data_ica/'
+    # meg_subject_dir = "/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/results/cd_130323/processed_data/ica"
     subjects_runs = config.runs_dict[subject]
     raw_list = []
 
@@ -93,7 +94,7 @@ def compute_epochs(subject, tmin, tmax, decim=1, reject = None, baseline=None, s
             if filter is not None:
                 epoch = epoch[filter]
 
-            epoch_save = config.saving_path + '/epochs/' + subject + '/'
+            epoch_save = config.data_path + '/epochs/' + subject + '/'
             create_folder(epoch_save)
             epoch_savename = epoch_save + run + "-epo.fif"
             if len(suffix)>0:
