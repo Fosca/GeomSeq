@@ -181,7 +181,11 @@ def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433,
 
     epochs_sequences = epoching_funcs.load_and_concatenate_epochs(subject,filter = 'seq')
     epochs_sequences1 = epochs_sequences.copy().crop(tmin=tmin,tmax=tmax)
-    epochs_sequences1 = epochs_sequences1["sequence != 'memory1' or sequence != 'memory2' or sequence != 'memory4' and violation == 0"]
+    epochs_sequences1 = epochs_sequences1["sequence != 'memory1' and sequence != 'memory2' and sequence != 'memory4' and violation == 0"]
+
+    seq_names = epochs_sequences1.metadata['sequence'].values
+    print("---- the sequences are among the following : ----")
+    np.unique(seq_names)
 
     if filter is not None:
         epochs_sequences1 = epochs_sequences1[filter]
