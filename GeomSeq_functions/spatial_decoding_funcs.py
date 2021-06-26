@@ -83,23 +83,10 @@ def build_localizer_decoder(subject,classifier=False,tmin = 0,tmax=0.5, SW=None,
             decoder_fullname = save_folder + subject + '/SW_'+str(SW) + decoder_name
 
     angle = np.arange(5*pi/8,5*pi/8-2*pi , -pi/4)
-
-    if SW is not None:
-        epochs_pairs = epoching_funcs.load_and_concatenate_epochs(subject,folder_suffix="anticipation", filter='pairs', no_rsa=True)
-    else:
-        epochs_pairs = epoching_funcs.load_and_concatenate_epochs(subject, filter='pairs', no_rsa=True)
-
+    epochs_pairs = epoching_funcs.load_and_concatenate_epochs(subject, filter='pairs', no_rsa=True)
     epochs_pairs_for_localizer = epochs_pairs["first_or_second == 1"]
-    if 'ab' in subject:
-        epochs_decoding_spatial_location = epochs_pairs_for_localizer
-    else:
-        if SW is not None:
-            epochs_localizer = epoching_funcs.load_and_concatenate_epochs(subject, folder_suffix="anticipation",
-                                                                      filter='localizer')
-        else:
-            epochs_localizer = epoching_funcs.load_and_concatenate_epochs(subject, filter='localizer')
-        epochs_decoding_spatial_location = mne.concatenate_epochs([epochs_localizer, epochs_pairs_for_localizer])
-
+    epochs_localizer = epoching_funcs.load_and_concatenate_epochs(subject, filter='localizer')
+    epochs_decoding_spatial_location = mne.concatenate_epochs([epochs_localizer, epochs_pairs_for_localizer])
     epochs_decoding_spatial_location = epochs_decoding_spatial_location["position_on_screen != 9"]
 
     if tmin is not None:
@@ -160,10 +147,10 @@ def apply_localizer_to_sequences_8positions(subject):
         scores_pos = scorer_angle(y_true=y_true, y_pred=y_preds)
         scores['score_pos_%i'%i] = scores_pos
 
-    np.save(config.result_path+'/decoding/stimulus/'+subject+'/scores_8positions.npy')
+    np.save(config.result_path+'/decoding/stimulus/'+subject+'/scores_8positions.npy',scores)
 
 
-def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433, SW=None,step=None):
+def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433, SW=None,step=1):
     """
     We apply the localizer decoder on the sequence events (except on the violations)
     :param subject:
@@ -194,14 +181,11 @@ def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433,
     #     subject, filter='seq',
     #     baseline_or_not=False, PCA_or_not=False, micro_avg_or_not=False, sliding_window_or_not=False)
     epochs_sequences1 = epochs_sequences.copy().crop(tmin=tmin,tmax=tmax)
-    epochs_sequences1 = epochs_sequences1["sequence != 'memory1' or sequence != 'memory2' or sequence != 'memory4'"]
+    epochs_sequences1 = epochs_sequences1["sequence != 'memory1' or sequence != 'memory2' or sequence != 'memory4' and violation == 0"]
     suffix_SW = ''
     if SW is not None:
-        epochs_sequences1 = epoching_funcs.sliding_window(epochs_sequences1,sliding_window_size=SW)
-        suffix_SW = 'SW_' + str(SW)
-        if step is not None:
-            epochs_sequences1 = epoching_funcs.sliding_window(epochs_sequences1, sliding_window_size=SW,step=step)
-            suffix_SW = 'SW_' + str(SW) + str(step)
+        epochs_sequences1 = epoching_funcs.sliding_window(epochs_sequences1,sliding_window_size=SW,sliding_window_step=step)
+        suffix_SW = 'SW_' + str(SW)+ str(step)
 
     if classifier:
         y_preds1 = localizer.predict_proba(epochs_sequences1.get_data())
@@ -211,6 +195,9 @@ def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433,
             folder = config.result_path+'/decoding/stimulus/'+subject+'/SW/'
         np.save(folder+suffix_SW+'classifier_results_loca_on_seq'+str(round(tmin*1000))+'_'+str(round(tmax*1000))+'.npy',dict_results1)
     else:
+        save_path = config.result_path+'/decoding/stimulus/'+subject+'/'+suffix_SW+'angular_loca_tested_on_sequences'+str(np.round(tmin*1000,0))+'_'+str(np.round(tmax*1000,0))
         y_preds = localizer.predict(epochs_sequences1.get_data())
-        dict_results = {'y_preds': y_preds, 'metadata': epochs_sequences.metadata,'times':epochs_sequences.times}
-        np.save(config.result_path+'/decoding/stimulus/'+subject+'/'+suffix_SW+'angular_results_loca_on_seq.npy',dict_results)
+        y_preds = np.squeeze(y_preds)
+        metadata = epochs_sequences.metadata
+        metadata['y_preds'] = y_preds
+        metadata.to_pickle(save_path+'.pkl')
