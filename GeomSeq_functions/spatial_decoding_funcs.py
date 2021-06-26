@@ -61,7 +61,7 @@ def load_localizer_decoder(subject,classifier=False, SW=None,step = None):
 
     return spatial_decoder
 
-def build_localizer_decoder(subject,classifier=False,tmin = 0,tmax=0.5, SW=None,step = None,compute_cross_validation_score=False):
+def build_localizer_decoder(subject,classifier=False,tmin = 0,tmax=0.5, SW=None,step = None,compute_cross_validation_score=False,decim=None):
     """
     This function builds the localizer decoder from the data of the localizer part and the first items of the pairs in the primitive part.
     These are the two types of events for which the item's position on the screen cannot be anticipated.
@@ -102,6 +102,10 @@ def build_localizer_decoder(subject,classifier=False,tmin = 0,tmax=0.5, SW=None,
                                                                              sliding_window_step=step)
         else:
             epochs_decoding_spatial_location = epoching_funcs.sliding_window(epochs_decoding_spatial_location,sliding_window_size=SW,sliding_window_step=1)
+
+    if decim is not None:
+        print("--- we perform (additional ?) decimation by %i ----"%decim)
+        epochs_decoding_spatial_location.decimate(decim=decim)
 
     X = epochs_decoding_spatial_location.get_data()
     if classifier:
@@ -150,7 +154,7 @@ def apply_localizer_to_sequences_8positions(subject):
     np.save(config.result_path+'/decoding/stimulus/'+subject+'/scores_8positions.npy',scores)
 
 
-def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433, SW=None,step=1):
+def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433, SW=None,step=1,decim = None):
     """
     We apply the localizer decoder on the sequence events (except on the violations)
     :param subject:
@@ -176,16 +180,20 @@ def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433,
         localizer = pickle.load(fid)
 
     epochs_sequences = epoching_funcs.load_and_concatenate_epochs(subject,filter = 'seq')
-    # # ------ load the sequence epochs ----
-    # epochs_sequences , saving_suffix, micro_avg_or_not, sliding_window_or_not = epoching_funcs.load_epochs_and_apply_transformation(
-    #     subject, filter='seq',
-    #     baseline_or_not=False, PCA_or_not=False, micro_avg_or_not=False, sliding_window_or_not=False)
     epochs_sequences1 = epochs_sequences.copy().crop(tmin=tmin,tmax=tmax)
     epochs_sequences1 = epochs_sequences1["sequence != 'memory1' or sequence != 'memory2' or sequence != 'memory4' and violation == 0"]
+
+    if filter is not None:
+        epochs_sequences1 = epochs_sequences1[filter]
+
     suffix_SW = ''
     if SW is not None:
         epochs_sequences1 = epoching_funcs.sliding_window(epochs_sequences1,sliding_window_size=SW,sliding_window_step=step)
         suffix_SW = 'SW_' + str(SW)+ str(step)
+
+    if decim is not None:
+        print("--- we perform (additional ?) decimation by %i ----"%decim)
+        epochs_sequences1.decimate(decim)
 
     if classifier:
         y_preds1 = localizer.predict_proba(epochs_sequences1.get_data())
