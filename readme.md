@@ -26,7 +26,7 @@ We here assume that the raw data was preprocessed according to the stages descri
 The code is written for python 3.7. Compatibility with previous versions of python was not tested and is therefore not granted. 
 
  ## Related toolboxes
-Most of the MEG analyses are based on MNE <https://mne.tools/stable/index.html>.
+Most of the MEG analyses are based on MNE <https://mne.tools/stable/index.html>. For plotting decoding results, we use jr-tools <https://github.com/kingjr/jr-tools>.
  Dror Dotan and I also developed a related toolbox for analyzing MEG data using RSA. It was used to generate the results corresponding to Figure S2.
  
   
