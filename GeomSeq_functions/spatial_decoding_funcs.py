@@ -166,13 +166,12 @@ def apply_localizer_to_sequences_8positions(subject):
 
 def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433, SW=None,step=None):
     """
-    We apply the localizer decoder on the sequence events after the first sequence repetition and not on the violations
+    We apply the localizer decoder on the sequence events (except on the violations)
     :param subject:
     :return:
     """
 
     # ------ load the localizer ----
-
     if classifier:
         decoder_name = 'classifier_localizer.pkl'
     else:
@@ -187,9 +186,11 @@ def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433,
         else:
             loca_fname = save_folder + subject + '/SW_'+str(SW) + decoder_name
 
-
     with open(loca_fname,'rb') as fid:
         localizer = pickle.load(fid)
+
+
+
 
     # ------ load the sequence epochs ----
     epochs_sequences , saving_suffix, micro_avg_or_not, sliding_window_or_not = epoching_funcs.load_epochs_and_apply_transformation(

@@ -2,13 +2,14 @@ import mne
 from mne.decoding import UnsupervisedSpatialFilter
 from sklearn.decomposition import PCA
 import sys
-sys.path.append('/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq_New/')
+sys.path.append('/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq/')
 from GeomSeq_analyses import config
 import os.path as op
 import pandas as pd
 import numpy as np
 import glob
 import os
+
 
 def trigger_delay():
     trigger_delay = {'sequences': 50, 'pairs': 50, 'ling_vis': 54}
@@ -103,6 +104,7 @@ def compute_epochs(subject, tmin, tmax, decim=1, reject = None, baseline=None, s
                 create_folder(eposave)
                 epoch_savename = eposave + run  +"-epo.fif"
 
+            print(epoch_savename)
             epoch.save(epoch_savename)
             del epoch
             del raw
@@ -592,9 +594,9 @@ def load_and_concatenate_epochs(subject, suffix="",folder_suffix="", no_rsa=True
     :param filter:
     :return:
     """
-    epochs_names = glob.glob(config.saving_path + '/epochs/' + subject +'/'+folder_suffix+ '/*.fif')
+    epochs_names = glob.glob(config.data_path + '/epochs/' + subject +'/'+folder_suffix+ '/*.fif')
     if len(suffix)>0:
-        epochs_names = glob.glob(config.saving_path + '/epochs/' + subject +'/'+folder_suffix+ '/'+ suffix+'/*')
+        epochs_names = glob.glob(config.data_path + '/epochs/' + subject +'/'+folder_suffix+ '/'+ suffix+'/*')
     print(epochs_names)
 
     epochs = []
