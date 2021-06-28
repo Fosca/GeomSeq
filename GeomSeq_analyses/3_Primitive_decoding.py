@@ -1,3 +1,12 @@
+"""
+===========
+1_Primitive_decoding
+===========
+The script produce the data used to plot Figure 5.
+"""
+import sys
+sys.path.append("/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq/")
+
 from GeomSeq_functions import primitive_decoding_funcs
 from GeomSeq_analyses import config
 

@@ -1,9 +1,5 @@
 from sklearn.model_selection import StratifiedKFold
-import GeomSeq_funcs.decoding_funcs.decod_utils
-
-import GeomSeq_funcs.epoching_funcs
-import GeomSeq_funcs.decoding_funcs.decod_utils
-import config
+from GeomSeq_analyses import config
 from GeomSeq_functions import epoching_funcs
 import numpy as np
 from sklearn.pipeline import make_pipeline
