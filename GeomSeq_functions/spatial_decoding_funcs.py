@@ -205,8 +205,6 @@ def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433,
         y_preds1 = localizer.predict_proba(epochs_sequences1.get_data())
         dict_results1 = {'y_preds': y_preds1, 'metadata': epochs_sequences1.metadata,'times':epochs_sequences1.times}
         folder = config.result_path+'/decoding/stimulus/'+subject+'/'
-        if SW is not None:
-            folder = config.result_path+'/decoding/stimulus/'+subject+'/SW/'
         np.save(folder+suffix_SW+'classifier_results_loca_on_seq'+str(round(tmin*1000))+'_'+str(round(tmax*1000))+'.npy',dict_results1)
     else:
         save_path = config.result_path+'/decoding/stimulus/'+subject+'/'+suffix_SW+'angular_loca_tested_on_sequences'+str(np.round(tmin*1000,0))+'_'+str(np.round(tmax*1000,0))
