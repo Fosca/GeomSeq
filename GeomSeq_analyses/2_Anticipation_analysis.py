@@ -24,7 +24,6 @@ filter = "sequence != '4diagonal' and sequence != '2crosses' and position_in_sub
 spatial_decoding_funcs.apply_localizer_to_sequences(subject,classifier=True,tmin = -0.65,tmax=0.4, SW=10,step = 5,decim=2,
                                                     filter = filter)
 
-
 anticipation_funcs.plot_anticipation_results(classifier=True,plot_results= True,bin_results = False,SW = 105)
 anticipation_funcs.plot_average_P2_P2prime_anticipation(classifier=True,tmin_avg=0.1,tmax_avg = 0.2,bin_results=False,SW=105)
 anticipation_funcs.compute_significance_window_anticipation(classifier=True,tmin_avg=0.1,tmax_avg = 0.2,bin_results = False,SW = 105)

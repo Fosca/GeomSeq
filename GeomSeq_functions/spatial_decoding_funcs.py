@@ -154,7 +154,7 @@ def apply_localizer_to_sequences_8positions(subject):
     np.save(config.result_path+'/decoding/stimulus/'+subject+'/scores_8positions.npy',scores)
 
 
-def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433, SW=None,step=1,decim = None):
+def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433, SW=None,step=1,decim = None,filter=None):
     """
     We apply the localizer decoder on the sequence events (except on the violations)
     :param subject:
