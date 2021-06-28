@@ -177,6 +177,7 @@ def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433,
             loca_fname = save_folder + subject + '/SW_'+str(SW) + decoder_name
 
     with open(loca_fname,'rb') as fid:
+        print("--- we are loading %s ----"%loca_fname)
         localizer = pickle.load(fid)
 
     epochs_sequences = epoching_funcs.load_and_concatenate_epochs(subject,filter = 'seq')
@@ -185,9 +186,10 @@ def apply_localizer_to_sequences(subject,classifier = True,tmin=-0.6,tmax=0.433,
 
     seq_names = epochs_sequences1.metadata['sequence'].values
     print("---- the sequences are among the following : ----")
-    np.unique(seq_names)
+    print(np.unique(seq_names))
 
     if filter is not None:
+        print("---- we filter the data additionnally according to %s ----- "%filter)
         epochs_sequences1 = epochs_sequences1[filter]
 
     suffix_SW = ''
