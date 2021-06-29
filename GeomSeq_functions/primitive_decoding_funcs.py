@@ -203,12 +203,13 @@ def run_primitivepart_decoding_time_resolved(subject, which_primitives='11primit
 
     # 1 - select the either the pairs or the sequence data
     epochs_for_decoding = epoching_funcs.load_and_concatenate_epochs(subject,filter='pairs')
-    # we baseline the data and smooth it with a sliding window (size 25 dots i.e. 100 ms, every 4 ms)
+    # we baseline the data and smooth it with a sliding window (size 25 dots i.e. 100 ms, every 4 ms, when the data is decimated by a factor of 4)
     epochs_for_decoding.apply_baseline()
-    epochs_for_decoding = epoching_funcs.sliding_window(epochs_for_decoding)
-
     if decim is not None:
         epochs_for_decoding.decimate(decim)
+    epochs_for_decoding = epoching_funcs.sliding_window(epochs_for_decoding)
+
+
 
     # 2 - run either the 11 primitives decoder or the rotation / symmetry balanced decoder
     if which_primitives == '11primitives':

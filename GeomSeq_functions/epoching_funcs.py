@@ -585,7 +585,7 @@ def sequences_primitives():
 
 
 # ------------------------------------------- ------------------------------------------- ------------------------------
-def load_and_concatenate_epochs(subject, suffix="",folder_suffix="", no_rsa=True, filter='pairs'):
+def load_and_concatenate_epochs(subject, suffix="",folder_suffix="", no_rsa=False, filter='pairs'):
 
     """
     Function that loads all the files corresponding to one epoch type and that concatenates them into a single epoch object.
@@ -615,6 +615,7 @@ def load_and_concatenate_epochs(subject, suffix="",folder_suffix="", no_rsa=True
     epochs = mne.concatenate_epochs(epochs)
 
     return epochs
+
 
 # ______________________________________________________________________________________________________________________
 def sliding_window(epoch,sliding_window_size=25, sliding_window_step=1,
