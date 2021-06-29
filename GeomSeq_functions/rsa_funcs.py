@@ -1,5 +1,5 @@
 
-from GeomSeq_functions import epoching_funcs
+from GeomSeq_functions import epoching_funcs, utils
 from GeomSeq_analyses import config
 import pandas as pd
 import mne
@@ -9,8 +9,8 @@ import glob
 import os.path as op
 
 class fn_template:
-    epochs_full = config.saving_path + "rsa/rsa_epochs/full-{:}/epochs_{:}.fif"
-    dissim = config.saving_path + "rsa/dissim/{:}/{:}_{:}.dmat"
+    epochs_full = config.data_path + "rsa/rsa_epochs/full-{:}/epochs_{:}.fif"
+    dissim = config.data_path + "rsa/dissim/{:}/{:}_{:}.dmat"
 
 #-----------------------------------------------------------------------------------------------------------------------
 def preprocess_and_compute_dissimilarity(subject, metrics, tmin=-0.4, tmax=1.,decim=1,
@@ -488,7 +488,7 @@ def get_top_triangle_inds(matrix):
 def all_stimuli():
 
     # ====== we load the metadata from a given participant ==========
-    metadata_path = config.saving_path+'rsa/all_stimuli.pkl'
+    metadata_path = config.data_path+'rsa/all_stimuli.pkl'
     all_stimuli = pd.read_pickle(metadata_path)
     all_stimuli = all_stimuli[np.logical_and(all_stimuli['first_or_second']==1,all_stimuli['violation']==0)]
 
