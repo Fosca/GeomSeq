@@ -250,8 +250,8 @@ def run_sequencepart_decoding_time_resolved(subject,decim=None):
     # we baseline the data and smooth it with a sliding window (size 25 dots i.e. 100 ms, every 4 ms)
     epochs_for_decoding.apply_baseline()
     if decim is not None:
+        print("--- we extra decimate the epochs by a factor of %i ----" %decim)
         epochs_for_decoding.decimate(decim)
-    print("---- the epochs are decimated by a factor of %i ----"%epochs_for_decoding._decim)
 
     epochs_for_decoding = epoching_funcs.sliding_window(epochs_for_decoding)
 

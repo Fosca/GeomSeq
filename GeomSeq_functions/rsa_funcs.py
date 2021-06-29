@@ -10,7 +10,7 @@ import os.path as op
 
 class fn_template:
     epochs_full = config.data_path + "rsa/rsa_epochs/full-{:}/epochs_{:}.fif"
-    dissim = config.data_path + "rsa/dissim/{:}/{:}_{:}.dmat"
+    dissim = config.result_path + "rsa/dissim/{:}/{:}_{:}.dmat"
 
 #-----------------------------------------------------------------------------------------------------------------------
 def preprocess_and_compute_dissimilarity(subject, metrics, tmin=-0.4, tmax=1.,decim=1,
