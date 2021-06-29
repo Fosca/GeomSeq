@@ -206,6 +206,7 @@ def run_primitivepart_decoding_time_resolved(subject, which_primitives='11primit
     # we baseline the data and smooth it with a sliding window (size 25 dots i.e. 100 ms, every 4 ms, when the data is decimated by a factor of 4)
     epochs_for_decoding.apply_baseline()
     if decim is not None:
+        print("--- we extra decimate the epochs ----")
         epochs_for_decoding.decimate(decim)
     print("---- the epochs are decimated by a factor of %i ----"%epochs_for_decoding._decim)
 
