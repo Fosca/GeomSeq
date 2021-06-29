@@ -207,9 +207,10 @@ def run_primitivepart_decoding_time_resolved(subject, which_primitives='11primit
     epochs_for_decoding.apply_baseline()
     if decim is not None:
         epochs_for_decoding.decimate(decim)
+
+    print("---- the epochs are decimated by a factor of %i ----"%epochs_for_decoding._decim)
+
     epochs_for_decoding = epoching_funcs.sliding_window(epochs_for_decoding)
-
-
 
     # 2 - run either the 11 primitives decoder or the rotation / symmetry balanced decoder
     if which_primitives == '11primitives':
