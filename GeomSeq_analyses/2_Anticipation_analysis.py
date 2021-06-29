@@ -12,8 +12,6 @@ import sys
 sys.path.append("/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq/")
 from GeomSeq_functions import spatial_decoding_funcs, anticipation_funcs
 from GeomSeq_analyses import config
-from GeomSeq_functions import epoching_funcs
-
 
 # 1 - create the classifier localizer decoder on the window 0 - 500ms on the data segmented
 # every 5 ms on windows of 10 ms, decimation factor 2.
