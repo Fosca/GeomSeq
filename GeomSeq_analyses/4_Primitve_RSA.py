@@ -1,27 +1,44 @@
+"""
+===========
+4_RSA supplementary analysis
+===========
+The script produce the data used to plot Figure 5.
+"""
+
+
+# ------- append the right paths --------
 import sys
 sys.path.append("/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq/")
 sys.path.append("/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/umne/")
 
+# ------- load the functions coming from our package --------
 from GeomSeq_functions import rsa_funcs
-import numpy as np
-
-from GeomSeq_functions import config
+from GeomSeq_analyses import config
+# ------- load umne package for RSA related information --------
 import umne
-import matplotlib.cm as cm
-
-import matplotlib.pyplot as plt
-from importlib import reload
-from scipy.stats import ttest_1samp
 from umne.stats import stats_cluster_based_permutation_test
+
+# ----- load general packages and functions ------
+import numpy as np
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+
+from importlib import reload
 reload(umne)
 reload(rsa_funcs)
-dis = rsa_funcs.dissimilarity
-plt.close('all')
-fig_path = '//Users/fosca/Documents/Fosca/Post_doc/Projects/Geom_seq/Article/Manuscript/revisions/new_figures/RSA/'
+from scipy.stats import ttest_1samp
+
+
+
+# ______________________________________________________________________________________________________________________
+# compute the dissimilarity matrix from the behavioral data
+subject = config.subjects_list[0]
+rsa_funcs.preprocess_and_compute_dissimilarity(subject, 'spearmanr', baseline=None,
+                                               which_analysis='primitives_and_sequences',
+                                               factors_or_interest=('primitive', 'position_pair', 'block_type'))
 
 # ______________________________________________________________________________________________________________________
 # ______________________________________________________________________________________________________________________
-
 # = = = = = = = = = = = = = = = 11 PRIMITIVES IN SEQUENCES AND PAIRS + POSITION PAIRS  = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 # ______________________________________________________________________________________________________________________
 # ______________________________________________________________________________________________________________________

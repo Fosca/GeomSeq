@@ -1,6 +1,6 @@
 """
 ===========
-1_Primitive_decoding
+3_Primitive_decoding
 ===========
 The script produce the data used to plot Figure 5.
 """
