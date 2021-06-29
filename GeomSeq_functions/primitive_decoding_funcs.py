@@ -207,7 +207,6 @@ def run_primitivepart_decoding_time_resolved(subject, which_primitives='11primit
     epochs_for_decoding.apply_baseline()
     if decim is not None:
         epochs_for_decoding.decimate(decim)
-
     print("---- the epochs are decimated by a factor of %i ----"%epochs_for_decoding._decim)
 
     epochs_for_decoding = epoching_funcs.sliding_window(epochs_for_decoding)
@@ -241,7 +240,7 @@ def run_primitivepart_decoding_time_resolved(subject, which_primitives='11primit
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def run_sequencepart_decoding_time_resolved(subject):
+def run_sequencepart_decoding_time_resolved(subject,decim=None):
     """
     Function to decode the 11 primitive types in the sequence part.
     """
@@ -250,6 +249,10 @@ def run_sequencepart_decoding_time_resolved(subject):
     epochs_for_decoding = epoching_funcs.load_and_concatenate_epochs(subject,filter='sequence')
     # we baseline the data and smooth it with a sliding window (size 25 dots i.e. 100 ms, every 4 ms)
     epochs_for_decoding.apply_baseline()
+    if decim is not None:
+        epochs_for_decoding.decimate(decim)
+    print("---- the epochs are decimated by a factor of %i ----"%epochs_for_decoding._decim)
+
     epochs_for_decoding = epoching_funcs.sliding_window(epochs_for_decoding)
 
     # 2 - run either the 11 primitives decoder or the rotation / symmetry balanced decoder
