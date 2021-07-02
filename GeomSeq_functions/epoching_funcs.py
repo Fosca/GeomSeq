@@ -21,7 +21,7 @@ def create_folder(folder_name):
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
 
-def compute_epochs(subject, tmin, tmax, decim=1, reject = None, baseline=None, suffix="",block_type = 'primitives', filter=None):
+def compute_epochs(subject, tmin, tmax, decim=1, reject = None, baseline=None,block_type = 'primitives', filter=None,full_seq_block = None):
     """
     The function epochs the raw data and appends the corresponding metadata dataframe to it.
     :param subject: subject id
@@ -30,7 +30,6 @@ def compute_epochs(subject, tmin, tmax, decim=1, reject = None, baseline=None, s
     :param decim: params from the mne.epoching func
     :param reject: params from the mne.epoching func
     :param baseline: params from the mne.epoching func
-    :param suffix: allows to save with another name if you use special epoching params
     :param block_type: set it to 'primitives', 'sequences' or 'localizer' depending on which type of run you want to epoch
     :param filter: pandas query to select just a subpart of the epochs to build the epochs
     :return: True
@@ -79,12 +78,25 @@ def compute_epochs(subject, tmin, tmax, decim=1, reject = None, baseline=None, s
                 raise ValueError(" problematic subject %s that has for run %s %i events instead of %i"%(subject,run,len(events),n_epochs))
 
             # the metadata is computed depending of the
+            suffix = ''
             if block_type=='primitives':
                 metadata = extract_metadata_PAIRS(events,ii+1)
             elif block_type == "localizer":
                 metadata = extract_metadata_LOCALIZER(events)
             else:
                 metadata = extract_metadata_SEQUENCES(events, ii + 1)
+                if full_seq_block == 'full_seq':
+                    print(" ---  we are computing the epochs on the full sequence ---- ")
+                    metadata = metadata.query("position_in_sequence == 1")
+                    # we select one event every 8
+                    events = [events[i*8,:] for i in range(12*12)]
+                    suffix = 'full_sequence'
+                elif full_seq_block == 'full_block':
+                    print(" ---  we are computing the epochs on the 12 repetitions of the sequence ---- ")
+                    metadata = metadata.query("position_in_subrun == 1")
+                    events = [events[i*8*12,:] for i in range(12)]
+                    suffix = 'full_block'
+
 
             picks = mne.pick_types(raw.info, meg=True, eeg=False, stim=False, eog=False, exclude=())
             epoch = mne.Epochs(raw, events, None, tmin,
@@ -98,12 +110,7 @@ def compute_epochs(subject, tmin, tmax, decim=1, reject = None, baseline=None, s
 
             epoch_save = config.data_path + '/epochs/' + subject + '/'
             create_folder(epoch_save)
-            epoch_savename = epoch_save + run + "-epo.fif"
-            if len(suffix)>0:
-                eposave = epoch_save+suffix+'/'
-                print(eposave)
-                create_folder(eposave)
-                epoch_savename = eposave + run  +"-epo.fif"
+            epoch_savename = epoch_save + run+ suffix + "-epo.fif"
 
             print(epoch_savename)
             epoch.save(epoch_savename)

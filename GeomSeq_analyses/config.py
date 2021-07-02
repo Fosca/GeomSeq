@@ -20,8 +20,7 @@ figure_path =  root_path + '/example_online/figures/'
 # Put here the list of subjects and define the names of the runs you have chosen
 # -----------
 subjects_list = ['sub01','YYY']
-runs = ['pairs1', 'pairs2', 'pairs3', 'pairs4', 'seq1', 'seq2', 'seq3',
-        'seq4', 'localizer']
+runs = ['pairs1', 'pairs2', 'pairs3', 'pairs4', 'seq1', 'seq2', 'seq3','seq4', 'localizer']
 runs_dict = {subject: runs for subject in subjects_list}
 
 ch_types = ['meg']

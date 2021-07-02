@@ -20,6 +20,8 @@ epoching_funcs.compute_epochs(subject, tmin=-0.65, tmax=0.6, decim=4, block_type
 # from the localizer part of the experiment
 epoching_funcs.compute_epochs(subject, tmin=-0.2, tmax=0.6, decim=4, block_type='localizer')
 
-
+# from the localizer part of the experiment
+epoching_funcs.compute_epochs(subject, tmin=0, tmax=0.433*8, decim=4, block_type='sequences',full_seq_block='full_seq')
+epoching_funcs.compute_epochs(subject, tmin=0, tmax=0.433*8*12, decim=4, block_type='sequences',full_seq_block='full_block')
 
 
