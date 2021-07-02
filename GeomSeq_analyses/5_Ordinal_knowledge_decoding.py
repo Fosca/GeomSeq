@@ -13,13 +13,6 @@ from GeomSeq_functions import epoching_funcs, ordinal_decoders, utils
 
 # ------- load the functions coming from our package --------
 subject = config.subjects_list[0]
-# --- il manque aussi le code pour générer la figure S6
-# créer fonction qui fait epochs sur les séquences entières
-# créer fonction qui extrait des runs les 12 répétitions pour chaque séquence: elle doit sortir 4 epochs contenant les 12 répétitions de chaque époque
-# metadata doit contenir run_number et sequence
-
-
-
 
 # ============== GAT data from ordinal decoding : Left columns of figures =======================================
 ordinal_decoders.run_ordinal_decoding_GAT(subject)
@@ -45,3 +38,16 @@ ordinal_decoders.decode_ordinal_position_allBlocks(subject,control=True)
 ordinal_decoders.decode_ordinal_position_allBlocks_CV(subject, tmin=0.3, tmax=0.5,control=False)
 # Data for the right column Figure S5
 ordinal_decoders.decode_ordinal_position_allBlocks_CV(subject, tmin=0.3, tmax=0.5,control=False)
+
+# ============== Fourier transform of the projection on the decision vector =======================
+
+# Fourier transforms and plots that correspond to the right columns of Figures 6, Figure S3, S4, S5, S6.
+ordinal_decoders.oscillations_ordinal_code()
+
+
+
+
+
+
+
+

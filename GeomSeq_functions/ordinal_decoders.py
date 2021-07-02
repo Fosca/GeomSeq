@@ -1,24 +1,20 @@
 import glob
 import mne
-import numpy as np
 from mne.decoding import GeneralizingEstimator
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
-from jr.plot import pretty_gat, pretty_decod
-import matplotlib.pyplot as plt
 
 from GeomSeq_analyses import config
 from GeomSeq_functions import utils, epoching_funcs
 from GeomSeq_functions.primitive_decoding_funcs import gat_classifier_categories
 
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy
+import scipy.fftpack
 
-
-
-# ------------- ------------- ------------- ------------- ------------- ------------- ------------- -------------  -----
-# ------------- ------------- ------------- GAT FOR ORDINAL POSITION ---------- ------------- ------------- ------------
-# ------------- ------------- ------------- ------------- ------------- ------------- ------------- -------------  -----
-
+# ______________________________________________________________________________________________________________________
 def run_ordinal_decoding_GAT(subject):
     """
     Wrapper function that generates all the Generalization across time data that is plotted in figure 6, S3 - S6.
@@ -40,7 +36,7 @@ def run_ordinal_decoding_GAT(subject):
         scores_name = config.result_path + "/decoding/ordipos_GAT/" + subject + key + '_control'
         np.save(scores_name, scores_dict[key])
 
-
+# ______________________________________________________________________________________________________________________
 def decode_position_in_component(epochs_for_decoding,control=False,micro_avg_or_not = False,predict_proba=True):
     """
     GAT matrices for the decoding of the ordinal positions in the following cases:
@@ -50,7 +46,7 @@ def decode_position_in_component(epochs_for_decoding,control=False,micro_avg_or_
     'train2squares_test2arcs': Vice-versa,
     '2arcs_2squares': We train and test on the data of 2arcs and 2squares from 3 blocks and test on the 4th (CV),
     '4segments_4diagonals': Same idea but for 4segments and 4diagonals,
-     'train2_test4': Train on 2arcs and 2squares, test on 4segments and 4diagonals,
+    'train2_test4': Train on 2arcs and 2squares, test on 4segments and 4diagonals,
     'train4_test2': Vice-versa,
 
     :param epochs_for_decoding:
@@ -138,9 +134,7 @@ def decode_position_in_component(epochs_for_decoding,control=False,micro_avg_or_
 
     return scores_dict
 
-# ------------- ------------- ------------- ------------- ------------- ------------- ------------- -------------  -----
-# ---- DECODING ORDINAL POSITION TRAINING THE ORDINAL DECODERS ON A WINDOW AND TESTING ON THE FULL 8 ITEMS SEQUENCE ----
-# ------------- ------------- ------------- ------------- ------------- ------------- ------------- -------------  -----
+# ______________________________________________________________________________________________________________________
 def train_decoder_window(epochs,labels,tmin,tmax,scoring=None,predict_probability=True):
     """
     Small function to crop the epochs and train an SVM decoder on the cropped epochs with the corresponding labels
@@ -154,7 +148,7 @@ def train_decoder_window(epochs,labels,tmin,tmax,scoring=None,predict_probabilit
     return time_gen
 
 
-
+# ______________________________________________________________________________________________________________________
 def decode_ordinal_position_oneSequence(subject, tmin=0.3, tmax=0.5,control=False,return_trained_decoders=False):
     """
     Decoding the ordinal position when training on a given window [tmin,tmax], and testing on the full sequence.
@@ -397,11 +391,6 @@ def decode_ordinal_position_oneSequence_train24_test42(subject, tmin=0.3, tmax=0
     np.save(save_path + subject + '_train2_test4.npy', results_train2_test4)
 
 
-# ------------- ------------- ------------- ------------- ------------- ------------- ------------- -------------  -----
-# DECODING ORDINAL POSITION TRAINING THE ORDINAL DECODERS ON A WINDOW AND TESTING
-#                                                       ON ALL THE BLOCK MADE OF THE 12 REPETITIONS OF THE SEQUENCE ----
-# ------------- ------------- ------------- ------------- ------------- ------------- ------------- -------------  -----
-
 # ______________________________________________________________________________________________________________________
 def decode_ordinal_position_allBlocks(subject,control=False):
     """
@@ -554,7 +543,6 @@ def decode_ordinal_position_allBlocks_CV(subject, tmin=0.3, tmax=0.5,control=Fal
         epo_full_2AS_data = np.vstack(np.asarray([epo_2arc_data,epo_2squ_data]))
         distances_2AS.append(dec_2AS.decision_function(epo_full_2AS_data))
         y_pred_2AS.append(dec_2AS.predict_proba(epo_full_2AS_data))
-    # ============== back to miniblock reorganizes the data into 4 (runs) X time series of the 12 repetitions ==================================
 
     times = epochs_for_decoding_full.times
 
@@ -572,9 +560,8 @@ def decode_ordinal_position_allBlocks_CV(subject, tmin=0.3, tmax=0.5,control=Fal
 
 
 
-# I am here FOSCA
 # ______________________________________________________________________________________________________________________
-def decode_ordinal_position_allBlocks_train42_test24(subject, baseline_or_not, PCA_or_not, sliding_window_or_not, micro_avg_or_not, tmin=0.2, tmax=0.6,control=False):
+def decode_ordinal_position_allBlocks_train42_test24(subject,tmin=0.2, tmax=0.6):
     """
     This function trains the component number decoder on the data from one sequence type and tests it on the full mini-blocks devoted to the sequence.
     The testing set is n_runs X 12 (number of repetitions of a given sequence within a run)
@@ -591,10 +578,9 @@ def decode_ordinal_position_allBlocks_train42_test24(subject, baseline_or_not, P
     # __________________________________________________________________________________________________
     # ==================== train on the averaged data  =================================================
     # ==== load the 1item epochs ====
-
-    epochs_for_decoding, results_decoding_path, micro_avg_or_not, sliding_window_or_not = load_epochs_and_apply_transformation(
-        subject, baseline_or_not, PCA_or_not, micro_avg_or_not, sliding_window_or_not, filter='seq')
-
+    epochs_for_decoding = epoching_funcs.load_and_concatenate_epochs(subject, filter='sequence')
+    epochs_for_decoding.decimate(4)
+    epochs_for_decoding = epoching_funcs.sliding_window(epochs_for_decoding)
 
     # ==== select the epochs for the different training sequences ====
 
@@ -605,55 +591,37 @@ def decode_ordinal_position_allBlocks_train42_test24(subject, baseline_or_not, P
     label_4 = np.asarray([int(k) for k in epo_4SD.metadata["WithinComponentPosition"].values])
     label_2 = np.asarray([int(k) for k in epo_2AS.metadata["WithinComponentPosition"].values])
     # ====== training the decoders =======
-    dec_4 = GeomSeq_funcs.decoding_funcs.decoding_funda.train_decoder_window(epo_4SD, label_4, tmin, tmax)
-    dec_2 = GeomSeq_funcs.decoding_funcs.decoding_funda.train_decoder_window(epo_2AS, label_2, tmin, tmax)
+    dec_4 = train_decoder_window(epo_4SD, label_4, tmin, tmax)
+    dec_2 = train_decoder_window(epo_2AS, label_2, tmin, tmax)
 
     # ___________________________________________________________________________________________________________________________________
     # ==================== TEST ON THE FULL TIME WINDOW CORRESPONDING TO all the mini-blocks devoted to one sequence   ==================
     # ___________________________________________________________________________________________________________________________________
-
-    baseline_or_not_seq = False
-
-    epochs_for_decoding_full, results_decoding_path, micro_avg_or_not, sliding_window_or_not = load_epochs_and_apply_transformation(
-        subject, baseline_or_not_seq, PCA_or_not, micro_avg_or_not, sliding_window_or_not, filter='seq',
-        suffix='full_sequence')
-
-    # _ _ _ _ _ concatenate back the sequence _ _ _ _ _
-    epochs_for_decoding_full.crop(tmin=0,tmax=8*0.433)
+    epochs_for_decoding_full = epoching_funcs.load_and_concatenate_epochs(subject, filter='full_block')
 
     epo_4SD_full = mne.concatenate_epochs(
         [epochs_for_decoding_full["sequence == '4segments'"], epochs_for_decoding_full["sequence == '4diagonals'"]])
     epo_2AS_full = mne.concatenate_epochs(
         [epochs_for_decoding_full["sequence == '2arcs'"], epochs_for_decoding_full["sequence == '2squares'"]])
 
+    y_train4_test2 = dec_4.predict_proba(epo_2AS_full)
+    y_train2_test4 = dec_2.predict_proba(epo_4SD_full)
+    dist_train4_test2 = dec_4.decision_function(epo_2AS_full)
+    dist_train2_test4 = dec_2.decision_function(epo_4SD_full)
 
-    y_train4_test2 = dec_4.predict_proba(back_to_miniblock(epo_2AS_full))
-    y_train2_test4 = dec_2.predict_proba(back_to_miniblock(epo_4SD_full))
-
-    dist_train4_test2 = dec_4.decision_function(back_to_miniblock(epo_2AS_full))
-    dist_train2_test4 = dec_2.decision_function(back_to_miniblock(epo_4SD_full))
-
-    # ============== back to miniblock reorganizes the data into 4 (runs) X time series of the 12 repetitions ==================================
-
-    times_1epo = epochs_for_decoding_full.times
-    times = np.hstack([times_1epo+8*0.433*i for i in range(12)])
-
+    times = epochs_for_decoding.times
     results_train4_test2= {'y_preds': np.asarray(y_train4_test2),
                                    'distances':dist_train4_test2,'times':times}
     results_train2_test4 = {'y_preds': np.asarray(y_train2_test4),
                                     'distances':dist_train2_test4,'times':times}
 
-
-    suffix = create_suffix(baseline_or_not, PCA_or_not, micro_avg_or_not,
-                           sliding_window_or_not=sliding_window_or_not)
-    save_path = config.result_path + '/decoding/decode_ordinal_position_allBlocks/'
-    utils.create_folder(save_path)
-    np.save(save_path + subject + suffix + '__train4_test2.npy', results_train4_test2)
-    np.save(save_path + subject + suffix + '__train2_test4.npy', results_train2_test4)
+    save_path = config.result_path + '/decoding/decode_ordinal_position_fullblock/'
+    np.save(save_path + subject + '_train4_test2.npy', results_train4_test2)
+    np.save(save_path + subject + '_train2_test4.npy', results_train2_test4)
 
 
 # ______________________________________________________________________________________________________________________
-def decode_ordinal_position_allBlocks_repeat_irregular(subject, baseline_or_not, PCA_or_not, sliding_window_or_not, micro_avg_or_not, tmin=0.2, tmax=0.6):
+def decode_ordinal_position_allBlocks_repeat_irregular(subject, tmin=0.2, tmax=0.6):
     """
     This function trains the component number decoder on the data from one sequence type and tests it on the full mini-blocks devoted to the sequence.
     The testing set is n_runs X 12 (number of repetitions of a given sequence within a run)
@@ -672,12 +640,11 @@ def decode_ordinal_position_allBlocks_repeat_irregular(subject, baseline_or_not,
     # __________________________________________________________________________________________________
     # ==================== training epochs =================================================
     # ==== load the 1item epochs ====
-
-    epochs_for_decoding, results_decoding_path, micro_avg_or_not, sliding_window_or_not = load_epochs_and_apply_transformation(
-        subject, baseline_or_not, PCA_or_not, micro_avg_or_not, sliding_window_or_not, filter='seq')
+    epochs_for_decoding = epoching_funcs.load_and_concatenate_epochs(subject, filter='sequence')
+    epochs_for_decoding.decimate(4)
+    epochs_for_decoding = epoching_funcs.sliding_window(epochs_for_decoding)
 
     epo_2arcs = epochs_for_decoding["sequence == '2arcs'"]
-
     epo_irregular = epochs_for_decoding["sequence == 'irregular'"]
     epo_repeat = epochs_for_decoding["sequence == 'repeat'"]
 
@@ -685,73 +652,48 @@ def decode_ordinal_position_allBlocks_repeat_irregular(subject, baseline_or_not,
     label_irregular = np.asarray([int(k) for k in epo_2arcs.metadata["WithinComponentPosition"].values])
     label_repeat = np.asarray([int(k) for k in epo_2arcs.metadata["WithinComponentPosition"].values])
 
-    # ___________________________________________________________________________________________________________________________________
     # ==================== TEST ON THE FULL TIME WINDOW CORRESPONDING TO all the mini-blocks devoted to one sequence   ==================
-    # ___________________________________________________________________________________________________________________________________
+    epochs_for_decoding_full = epoching_funcs.load_and_concatenate_epochs(subject, filter='full_block')
 
-    baseline_or_not_seq = False
-    epochs_for_decoding_full, results_decoding_path, micro_avg_or_not, sliding_window_or_not = load_epochs_and_apply_transformation(
-        subject, baseline_or_not_seq, PCA_or_not, micro_avg_or_not, sliding_window_or_not, filter='seq',
-        suffix='full_sequence')
-    epochs_for_decoding_full.crop(tmin=0,tmax=8*0.433)
-
-    y_pred_irregular = []
+    distances_repeat = []
     y_pred_repeat = []
     distances_irregular = []
-    distances_repeat = []
+    y_pred_irregular = []
 
-    for run in range(2,6):
+    run_numb = np.unique(epochs_for_decoding_full.metadata["run_number"].values)
+
+    for run in run_numb:
         # ======== training on all the blocks and all the items appart from the ones belonging to run number "run"
         inds_train_irregular = np.where(epo_irregular.metadata["run_number"]!=run)[0]
-        dec_irregular = GeomSeq_funcs.decoding_funcs.decoding_funda.train_decoder_window(epo_irregular[inds_train_irregular], label_irregular[inds_train_irregular], tmin, tmax)
-        epo_irregular_full = back_to_miniblock(epochs_for_decoding_full["sequence == 'irregular' and run_number == %i"%run])
+        dec_irregular = train_decoder_window(epo_irregular[inds_train_irregular], label_irregular[inds_train_irregular], tmin, tmax)
+        epo_irregular_full = epochs_for_decoding_full["sequence == 'irregular' and run_number == %i"%run]
         distances_irregular.append(dec_irregular.decision_function(epo_irregular_full))
         y_pred_irregular.append(dec_irregular.predict_proba(epo_irregular_full))
 
         # _______________________________________________________________________________________
         inds_train_repeat = np.where(epo_repeat.metadata["run_number"]!=run)[0]
-        dec_repeat = GeomSeq_funcs.decoding_funcs.decoding_funda.train_decoder_window(epo_repeat[inds_train_repeat], label_repeat[inds_train_repeat], tmin, tmax)
-        epo_repeat_full = back_to_miniblock(epochs_for_decoding_full["sequence == 'repeat' and run_number == %i"%run])
+        dec_repeat = train_decoder_window(epo_repeat[inds_train_repeat], label_repeat[inds_train_repeat], tmin, tmax)
+        epo_repeat_full = epochs_for_decoding_full["sequence == 'repeat' and run_number == %i"%run]
         distances_repeat.append(dec_repeat.decision_function(epo_repeat_full))
         y_pred_repeat.append(dec_repeat.predict_proba(epo_repeat_full))
 
     # ============== back to miniblock reorganizes the data into 4 (runs) X time series of the 12 repetitions ==================================
 
-    times_1epo = epochs_for_decoding_full.times
-    times = np.hstack([times_1epo+8*0.433*i for i in range(12)])
-
+    times = epochs_for_decoding_full.times
     results_irregular = {'y_preds': np.asarray(y_pred_irregular),
                                    'distances':distances_irregular,'times':times}
     results_repeat = {'y_preds': np.asarray(y_pred_repeat),
                                     'distances':distances_repeat,'times':times}
 
-    suffix = create_suffix(baseline_or_not, PCA_or_not, micro_avg_or_not,
-                           sliding_window_or_not=sliding_window_or_not)
-    save_path = config.result_path + '/decoding/decode_ordinal_position_allBlocks/'
-    utils.create_folder(save_path)
-    np.save(save_path + subject + suffix + '__irregular.npy', results_irregular)
-    np.save(save_path + subject + suffix + '__repeat.npy', results_repeat)
-
+    save_path = config.result_path + '/decoding/decode_ordinal_position_fullblock/'
+    np.save(save_path + subject + '_irregular.npy', results_irregular)
+    np.save(save_path + subject + '_repeat.npy', results_repeat)
 
 # ======================================================================================================================
 # ================================== FOURIER TRANSFORM FUNCTIONS =======================================================
 # ======================================================================================================================
-
 # ______________________________________________________________________________________________________________________
-def are_there_oscillations_in_ordinal_code(suffix='nobase_noPCA_SWoff_noma', prediction_type='distance', time_window=[300, 500],all_blocks=True,control=False):
-    """
-    This function computes the fourier transform of the ordinal code decoding results, averaging over the training time window
-    :param suffix:
-    :param prediction_type: 'distance' or 'ypred'. 'distance' is more sensitive.
-    :param time_window: Training time window for which the decoder's output will be averaged.
-    :param all_blocks: Set it to True if you want to compute the FFT on the predictions across the full 12 repetitions
-    :param control:
-    :return:
-    """
-
-    save_results_path = config.result_path + '/decoding/decode_ordinal_position_allBlocks/'
-    save_fig_path = config.figure_path + '/decoding/decode_ordinal_position_allBlocks/'
-    utils.create_folder(save_fig_path)
+def analysis_names(control=True):
 
     analyses = [['2arcs_2squares'], ['4segments_4diagonals'], ['train2arcs_test2squares', 'train2squares_test2arcs'],
                 ['train4diag_test4seg', 'train4seg_test4diag'], ['train4_test2'], ['train2_test4'], ['repeat'],
@@ -766,95 +708,130 @@ def are_there_oscillations_in_ordinal_code(suffix='nobase_noPCA_SWoff_noma', pre
         list_saving_names = ['traintest_2arcs_2squares', 'traintest_4segments_4diagonals', 'train4_test4_average',
                              'train2_test2_average']
 
+    return analyses, list_saving_names
+# ______________________________________________________________________________________________________________________
+def oscillations_ordinal_code():
+    """
+    This function computes the fourier transform of the projection on the decision vector for the ordinal code results.
+    We average over the training time window (300-500 ms)
+    """
+    save_results_path = config.result_path + '/decoding/decode_ordinal_position_fullblock/'
+    save_fig_path = config.figure_path + '/decoding/decode_ordinal_position_fullblock/'
+    utils.create_folder(save_fig_path)
 
-    # if all_blocks:
-    #
-    #
-    # else:
-    #     analyses = ['train4_test2', 'train2_test4']
-        # analyses = ['train2squares_test2arcs', 'train2arcs_test2squares', 'train4seg_test4diag',
-        #             'train4diag_test4seg','4segments_4diagonals','2arcs_2squares']
-        # list_saving_names = analyses
-
-    for ii, anal_list in enumerate(analyses):
-        for anal in anal_list:
-            print("====== running the analysis for %s =====" %anal)
-
-            fig, signals, times = GeomSeq_funcs.decoding_funcs.decod_plot_funcs.average_and_plot_ord_pos(suffix=suffix, analysis_list=[anal],
-                                           prediction_type=prediction_type, time_window=time_window,all_blocks=all_blocks,control=control)
-            plt.close('all')
-            n_subj, n_times, n_ord_positions = signals.shape
-            print(" ---- there are %i subjects participating to this analysis "%n_subj)
-
-            for ord_pos in range(n_ord_positions):
-                fft_results = GeomSeq_funcs.fourier_funcs.compute_fft(signals[:,:,ord_pos],times)
-                # ====================================================================================
-                print("==== we are saving the fft results in here ======")
-                if control:
-                    save_path_cc = save_results_path+list_saving_names[ii]+suffix+'fft_results'+str(ord_pos+1)+'_control.npy'
-                else:
-                    save_path_cc = save_results_path+list_saving_names[ii]+suffix+'fft_results'+str(ord_pos+1)+'.npy'
-                print(save_path_cc)
-                # ====================================================================================
-                np.save(save_path_cc,fft_results)
+    for control in [False,True]:
+        analyses, list_saving_names = analysis_names(control=control)
+        suffix = ''
+        if control:
+            suffix = '_control'
+        for ii, anal_list in enumerate(analyses):
+            for anal in anal_list:
+                fig, signals, times = average_and_plot_ord_pos(analysis_list=[anal],control=control)
+                plt.close('all')
+                n_subj, n_times, n_ord_positions = signals.shape
+                for ord_pos in range(n_ord_positions):
+                    fft_results = compute_fft(signals[:,:,ord_pos],times)
+                    save_path_cc = save_results_path+list_saving_names[ii]+'fft_results'+str(ord_pos+1)+suffix+'.npy'
+                    np.save(save_path_cc,fft_results)
 
 # ______________________________________________________________________________________________________________________
-def load_scores_ordipos(data_path,baseline_or_not,PCA_or_not,sliding_window_or_not,micro_avg_or_not,analysis_list,field_name=None,control=False):
+def average_and_plot_ord_pos(analysis_list,control=False):
     """
-    Loads the ordinal scores for the data in data_path and for the field_name in the results. Then it concatenates everything together.
-    :param data_path:
-    :param baseline_or_not:
-    :param PCA_or_not:
-    :param sliding_window_or_not:
-    :param micro_avg_or_not:
-    :param analysis_list:
-    :param field_name:
-    :param control:
-    :return:
+    This function averages the predictions across decoder's training times and epochs.
+    The average of the predictions will be computed over the window of 300-500ms
+    :param analysis_list: Here give the list of the analyses names that will be loaded and for which the results are going
+    to be averaged afterwards.
+    :return: figure handle, mean across training times and epochs, times
     """
 
-    suff = GeomSeq_funcs.decoding_funcs.decod_utils.generate_file_suffix(data_path, baseline_or_not=baseline_or_not,
-                                                                         PCA_or_not=PCA_or_not,
-                                                                         micro_avg_or_not=micro_avg_or_not,
-                                                                         sliding_window_or_not=sliding_window_or_not)
+    # ---- parameters for the plots -----
+    figsize = [3.2, 1.6]
+    labelsize = 6
+    fontsize = 6
+    linewidth = 0.7
+    linewidth_zero = 1
+    linewidth_other = 0.5
+    ylim = {'distance': {2: [-0.12, 0.12], 4: [1.4, 1.62]}}
 
-    print('The value of the control parameter is ')
-    print(control)
+    # ----- list of the analyses that were run with cross-validation. We need to average for them also across CV folds -
+    analyses_with_CV = ['4segments_4diagonals', '2arcs_2squares', 'repeat', 'irregular']
 
-    # ============= extract all the file names corresponding to the scores we want to analyze ==========================
-    files = []
-    for anal in analysis_list:
-        if control:
-            files.append(glob.glob(suff + '*' + anal + '_control.npy'))
+    # load the predicted distances : projection on the decision vector obtained from the decoding of the ordinal code
+    predictions = []
+    for k in range(len(analysis_list)):
+        predictions_to_append, times = load_predicted_ordinal_positions(analysis=analysis_list[k], control=control)
+        predictions.append(predictions_to_append)
+    # we average across the analyses mentionned in the list
+    predictions = np.mean(predictions, axis=0)
+
+    if analysis_list[0] in analyses_with_CV:
+        #  cross validation was computed across blocks. We average across blocks
+        predictions = np.mean(predictions, axis=1)
+
+    n_subj, n_epochs, n_train_times, n_test_times, n_cat = predictions.shape
+
+    # ======== average across times and epochs to obtain the final time series (mean across participants)
+    # and sem (from the variance  across participants) ======================
+
+    m_times = np.mean(predictions, axis=2)
+    m_epo = np.mean(m_times, axis=1)
+    mean_plot = np.mean(m_epo, axis=0)
+    sem_plot = np.std(m_epo, axis=0) / np.sqrt(n_subj)
+
+    # ============== And now, let's plot ============================
+    plt.figure(figsize=figsize)
+    ax = plt.gca()
+    for k in range(n_cat):
+        plt.plot(times, mean_plot[:, k], linewidth=linewidth)
+        ax.set_ylim(ylim['distance'][n_cat])
+        ax.fill_between(times, mean_plot[:, k] - sem_plot[:, k], mean_plot[:, k] + sem_plot[:, k], alpha=0.6)
+
+    ax.axvline(0, 0, 200, color='k', linewidth=linewidth_zero)
+    ax.set_xticks([np.round(0.433 * xx, 2) for xx in range(8)])
+    for ti in [0.433 * xx for xx in range(8)]:
+        ax.axvline(ti, 0, 200, color='k', linewidth=linewidth_other)
+    plt.gca().xaxis.set_ticks_position('bottom')
+    plt.gca().tick_params(axis='both', which='major', labelsize=labelsize)
+    plt.gca().set_xlabel('Testing Time (s)', fontsize=fontsize)
+    plt.gca().set_ylabel('Probability ordinal position', fontsize=fontsize)
+
+    return plt.gcf(), m_epo, times
+
+# ----------------------------------------------------------------------------------------------------------------------
+def load_predicted_ordinal_positions(analysis,control=False):
+    """
+    Function to load participants data (projections on the decision vector of the ordinal hyperplans) and to concatenate it.
+    :param analysis: Analysis name
+    :param prediction_type: 'distance'
+    :param control: True if you run the control Fourier analyses
+    :return: predictions, times
+    """
+
+    if control:
+        data_path = config.result_path + '/decoding/decode_ordinal_position_fullblock/' + '*_' + analysis + '_control.npy'
+    else:
+        data_path = config.result_path + '/decoding/decode_ordinal_position_fullblock/' + '*_' + analysis + '.npy'
+
+    all_files = glob.glob(data_path)
+    dists = []
+    for file in all_files:
+        res = np.load(file, allow_pickle=True).item()
+        if "4seg" in file or "train4_test2" in file:
+            print(" We are dealing with only 2 ordinal positions, so the output is 1D. We increase artificially the size of the distance score with 1-distance_ord_pos1")
+            scores_2cat = np.asarray([np.asarray(res['distances']),1-np.asarray(res['distances'])])
+            scores_2cat = np.moveaxis(scores_2cat,0,-1)
+            dists.append(scores_2cat)
         else:
-            files.append(glob.glob(suff + '*' + anal + '.npy'))
-    files = np.concatenate(files)
-    print(files)
-    print("======= THIS IS THE NUMBER OF FILES CONTRIBUTING TO THIS ANALYSIS =======\n")
-    print(len(files))
-    print("======= ======= ======= ======= ======= ======= ======= ========== =======\n")
+            dists.append(res['distances'])
 
-    # ============ the following loop is made in order to be able to average the data coming from 2 different conditions
-    # ============ for a given subject =================
-    scores = []
-    for subj in config.subjects_list:
-        scores_subj = []
-        for file in files:
-            if subj in file:
-                print("===== we are loading the data from %s "%file)
-                data_subj = np.load(file, allow_pickle=True).item()
-                if field_name is not None:
-                    scores_subj.append(np.mean(np.asarray(data_subj[field_name]['scores']), axis=0))
-                else:
-                    scores_subj.append(np.mean(np.asarray(data_subj['scores']), axis=0))
+    times = res['times']
+    return np.asarray(dists), times
 
-        print("===== we are averaging the data for subject %s " % subj)
-        scores_subj = np.asarray(scores_subj)
-        scores_subj = np.mean(scores_subj,axis=0)
-        scores.append(scores_subj)
-
-    scores = np.asarray(scores)
-
-    return scores
-
-
+# ______________________________________________________________________________________________________________________
+def compute_fft(signals,times):
+    """
+    Function to compute the Fast Fourier transform from the scipy fftpack
+    """
+    sig_fft = scipy.fftpack.fft(signals)
+    sample_freq = scipy.fftpack.fftfreq(signals.shape[1], d=times[1]-times[0])
+    return {'fft':sig_fft,'freqs':sample_freq}
