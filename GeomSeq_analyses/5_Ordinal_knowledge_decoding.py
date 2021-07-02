@@ -21,10 +21,6 @@ subject = config.subjects_list[0]
 
 
 
-
-
-
-
 # ============== GAT data from ordinal decoding : Left columns of figures =======================================
 ordinal_decoders.run_ordinal_decoding_GAT(subject)
 
@@ -41,5 +37,11 @@ ordinal_decoders.decode_ordinal_position_oneSequence_train24_test42(subject)
 
 # ============== Test the ordinal decoder on the full block - cross validating across blocks =======================================
 
-
-
+# Data for the right column Figure 6
+ordinal_decoders.decode_ordinal_position_allBlocks(subject,control=False)
+# Data for the right column Figure S5
+ordinal_decoders.decode_ordinal_position_allBlocks(subject,control=True)
+# Data for the right column Figure 6
+ordinal_decoders.decode_ordinal_position_allBlocks_CV(subject, tmin=0.3, tmax=0.5,control=False)
+# Data for the right column Figure S5
+ordinal_decoders.decode_ordinal_position_allBlocks_CV(subject, tmin=0.3, tmax=0.5,control=False)
