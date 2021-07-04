@@ -1,13 +1,12 @@
 """
 ===========
-4_Ordinal_knowledge_decoding
+5_Ordinal_knowledge_decoding.py
 ===========
 The script produces the data of Figure 6, Figure S3, S4, S5, S6.
-"""
 
-import sys
-sys.path.append("/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq/")
-sys.path.append("/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/umne/")
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
+
+"""
 from GeomSeq_analyses import config
 from GeomSeq_functions import epoching_funcs, ordinal_decoders, utils
 

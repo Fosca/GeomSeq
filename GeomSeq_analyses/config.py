@@ -4,6 +4,9 @@ Config file
 ===========
 
 Configuration parameters for the study.
+
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
+
 """
 
 ###############################################################################
@@ -12,7 +15,6 @@ Configuration parameters for the study.
 # Set the paths where your data, scripts etc are stored
 root_path =  "/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/"
 data_path = root_path + '/example_online/data/'
-scripts_path = root_path + '/GeomSeq/'
 result_path = root_path + '/example_online/results/'
 figure_path =  root_path + '/example_online/figures/'
 

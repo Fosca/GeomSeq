@@ -3,19 +3,15 @@
 4_RSA supplementary analysis
 ===========
 The script produce the data used to plot Figure S2.
+
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
+
 """
 # ------- append the right paths --------
-import sys
-sys.path.append("/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq/")
-sys.path.append("/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/umne/")
 
-# ------- load the functions coming from our package --------
 from GeomSeq_functions import rsa_funcs
 from GeomSeq_analyses import config
-# ------- load umne package for RSA related information --------
 import umne.scr.umne as umne
-
-# ----- load general packages and functions ------
 import numpy as np
 
 # ______________________________________________________________________________________________________________________
@@ -29,8 +25,22 @@ rsa_funcs.preprocess_and_compute_dissimilarity(subject, 'spearmanr', baseline=No
 # ---- extract the metadata of the empirical dissimilarity matrix -----
 empir_dissim = np.load(config.result_path + '/rsa/dissim/primitives_and_sequencesprimitive_position_pair_block_type_no_baseline/spearmanr_sub01.dmat',allow_pickle=True)
 
-#  --- Visualize the predictor matrices ---
+# ====== now run the RSA regression analysis ==========
 
+dis = rsa_funcs.dissimilarity_seq_prim
+reg_dis = umne.rsa.load_and_regress_dissimilarity(
+    config.result_path + 'rsa/dissim/primitives_and_sequencesprimitive_position_pair_block_type_no_baseline/*',
+    [dis.block_type,dis.primitive,dis.primitive_different_blocks,dis.rotation_or_symmetry_psym, dis.rotation_or_symmetry_psym_different_blocks, dis.distance,
+     dis.same_first, dis.same_second],
+    included_cells_getter=None)
+
+np.save(config.result_path + 'rsa/regressions/pairs_and_sequences/regression_no_baseline.npy',reg_dis)
+reg_dis = np.load(config.result_path + 'rsa/regressions/pairs_and_sequences/regression_no_baseline.npy',allow_pickle=True)
+times = [np.round(i, 0) for i in np.linspace(-0.4 * 1000, 1 * 1000, 131)]
+
+# -- %% -- %% -- PLOTTING RSA PREDICTOR MATRICES AND REGRESSIONS -- %% -- %% --
+
+#  --- Visualize the predictor matrices ---
 def viz_predictor_mats(dissim_mat, min_val=0,max_val=1):
     umne.rsa.plot_dissimilarity(rsa_funcs.gen_predicted_dissimilarity(dissim_mat, empir_dissim.md1),
                                 get_label=lambda md: md['primitive'],min_val=min_val, max_value=max_val, plot_color_bar=False)
@@ -43,20 +53,6 @@ viz_predictor_mats(dis.rotation_or_symmetry_psym_different_blocks, min_val=-1,ma
 viz_predictor_mats(dis.same_first)
 viz_predictor_mats(dis.same_second)
 viz_predictor_mats(dis.distance)
-
-# ====== now run the RSA regression analysis ==========
-
-dis = rsa_funcs.dissimilarity_seq_prim
-
-reg_dis = umne.rsa.load_and_regress_dissimilarity(
-    config.result_path + 'rsa/dissim/primitives_and_sequencesprimitive_position_pair_block_type_no_baseline/*',
-    [dis.block_type,dis.primitive,dis.primitive_different_blocks,dis.rotation_or_symmetry_psym, dis.rotation_or_symmetry_psym_different_blocks, dis.distance,
-     dis.same_first, dis.same_second],
-    included_cells_getter=None)
-
-np.save(config.result_path + 'rsa/regressions/pairs_and_sequences/regression_no_baseline.npy',reg_dis)
-reg_dis = np.load(config.result_path + 'rsa/regressions/pairs_and_sequences/regression_no_baseline.npy',allow_pickle=True)
-times = [np.round(i, 0) for i in np.linspace(-0.4 * 1000, 1 * 1000, 131)]
 
 # ----- plot all the regression coefficients on the same graph -----
 fig = umne.rsa.plot_regression_results(reg_dis[:, :, :-1], times,

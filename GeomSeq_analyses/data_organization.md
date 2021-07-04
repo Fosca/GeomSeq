@@ -1,12 +1,30 @@
 ## Scripts, data and results folders
 
 Put in the config.py the paths where:
-* **you put the python codes**: scripts_path
 * **the raw and preprocessed data is**: data_path
-* **transformed data (e.g. epochs) is**: saving_path  
 * **you want to save the results**: results_path
-* **you want to save the figures**: figures_path 
 
+```
+└── Project_folder
+    ├── data
+    │   ├── epochs
+    │   │   ├── sub01
+    │   │   │   │   ├── localizer-epo.fif
+    │   │   │   │   ├── the other epochs
+    │   │   │   ├── rsa
+    │   │   │   │   
+    │   ├── processed_data_ica
+    │   ├── rsa
+    ├── figures
+    ├── results
+    │   ├── decoding
+    │   │   ├── 11primitives
+    │   │   ├── rotationVSsymmetry
+    │   │   ├── stimulus
+    │   │   ├── decode_ordinal_position_fullblock
+    │   │   ├── ordinal_code_full_seq
+    │   │   ├── ordipos_GAT
+```
 ## *0_Create_epochs.py*
 
 The preprocessed data should be in:
@@ -67,4 +85,3 @@ There are 3 main types of epochs corresponding to the 3 experimental parts: prim
            
 Once you have epoched your data in the right format, you are ready to run the other analyses.
 
-## *0_Spatial_decoding.py*

@@ -1,3 +1,6 @@
+"""
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
+"""
 
 from GeomSeq_functions import epoching_funcs, utils
 from GeomSeq_analyses import config

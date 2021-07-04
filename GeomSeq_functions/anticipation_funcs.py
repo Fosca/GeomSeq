@@ -1,5 +1,8 @@
-import sys
-sys.path.append('/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq/')
+"""
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
+"""
+
+
 import numpy as np
 from math import pi
 from GeomSeq_analyses import config
@@ -44,22 +47,14 @@ def accuracy_score_per_epoch(ytrue,ypreds_epoch):
     Returns a matrix of 0 and 1 of the same shape as ypreds, i.e. train X test times, where 0 is when ypred is different from y_true
     and 1 is when the two are equal
     :param ytrue:
-    :param ypreds:
+    :param ypreds_epoch:
     :return:
     """
     return 1*(ypreds_epoch ==ytrue)
 
-    anticipation_dataframe = predictions_dataframe[1:]
-    anticipation_dataframe.drop(columns=['y_preds'])
-    anticipation_dataframe['P2'] = [score_P2[i] for i in range(len(score_P2))]
-    anticipation_dataframe['P2prime'] = [score_P2prime[i] for i in range(len(score_P2))]
-    anticipation_dataframe['anticipation'] = [anticipation[i] for i in range(len(score_P2))]
-    anticipation_dataframe['subjectID'] = [subject]*len(anticipation_dataframe)
-
-    return anticipation_dataframe
-
 
 def from_prediction_loc_on_sequences_to_anticipation(subject,classifier=True,bin_results=False,SW=None):
+    # TODO
     """
     Loads the predictions of the localizer applied to the sequences and computes the P2 and P2prime scores, and the anticipation.
     Saves all the results in a dataframe
@@ -67,7 +62,6 @@ def from_prediction_loc_on_sequences_to_anticipation(subject,classifier=True,bin
     :param classifier:
     :return:
 
-    subject = 'cd_130323'
     classifier = False
     bin_results = True
     """

@@ -1,3 +1,7 @@
+"""
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
+"""
+
 import glob
 import mne
 from mne.decoding import GeneralizingEstimator

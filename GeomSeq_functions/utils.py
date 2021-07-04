@@ -1,3 +1,7 @@
+"""
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
+"""
+
 import os
 
 def create_folder(folder_name):

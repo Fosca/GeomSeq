@@ -4,9 +4,10 @@
 ===========
 
 Script to epoch the data after preprocessing
+
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
+
 """
-import sys
-sys.path.append("/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq/")
 
 from GeomSeq_functions import epoching_funcs
 from GeomSeq_analyses import config
@@ -14,11 +15,11 @@ from GeomSeq_analyses import config
 # Here choose the identifier of your subjects
 subject = config.subjects_list[0]
 # epochs data from the primitive part of the experiment
-epoching_funcs.compute_epochs(subject, tmin=-0.2, tmax=0.6, decim=4)
+epoching_funcs.compute_epochs(subject, tmin=-0.2, tmax=0.6, decim=1)
 # from the sequence part of the experiment
-epoching_funcs.compute_epochs(subject, tmin=-0.65, tmax=0.6, decim=4, block_type='sequences')
+epoching_funcs.compute_epochs(subject, tmin=-0.65, tmax=0.6, decim=1, block_type='sequences')
 # from the localizer part of the experiment
-epoching_funcs.compute_epochs(subject, tmin=-0.2, tmax=0.6, decim=4, block_type='localizer')
+epoching_funcs.compute_epochs(subject, tmin=-0.2, tmax=0.6, decim=1, block_type='localizer')
 
 # from the sequence part of the experiment : epoch on the full sequence
 epoching_funcs.compute_epochs(subject, tmin=0, tmax=0.433*8, decim=4, block_type='sequences',full_seq_block='full_seq')

@@ -1,3 +1,7 @@
+"""
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
+"""
+
 from sklearn.model_selection import StratifiedKFold
 from GeomSeq_analyses import config
 from GeomSeq_functions import epoching_funcs

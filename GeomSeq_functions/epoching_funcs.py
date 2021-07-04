@@ -1,7 +1,8 @@
+"""
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
+"""
+
 import mne
-import sys
-sys.path.append('/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq/')
-sys.path.append('/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq_New/')
 from GeomSeq_analyses import config
 import os.path as op
 import pandas as pd
@@ -39,6 +40,8 @@ def compute_epochs(subject, tmin, tmax, decim=1, reject = None, baseline=None,bl
     raw_list = []
 
     # ---- epoching for the different types of blocks ----
+    key_word = ''
+    n_epochs = 0
     if block_type=='primitives':
         key_word = "pairs"
         n_epochs = 768
@@ -55,6 +58,7 @@ def compute_epochs(subject, tmin, tmax, decim=1, reject = None, baseline=None,bl
         # ========= we save one epoch object per run ======
         if key_word in run:
             extension = run + '_raw_sss'
+            ii = 0
             if key_word != 'loc':
                 ii = int(run[-1])
             raw_fname_in = op.join(meg_subject_dir, config.base_fname.format(**locals()))
@@ -94,8 +98,7 @@ def compute_epochs(subject, tmin, tmax, decim=1, reject = None, baseline=None,bl
                     events = [events[i*8*12,:] for i in range(12)]
                     suffix = 'full_block'
 
-
-            picks = mne.pick_types(raw.info, meg=True, eeg=False, stim=False, eog=False, exclude=())
+            picks = mne.pick_types(raw.info, meg=True, eeg=False, stim=False, eog=False)
             epoch = mne.Epochs(raw, events, None, tmin,
                                                     tmax, proj=True,
                                                     picks=picks, decim=decim, reject=reject, baseline=baseline)
@@ -181,10 +184,6 @@ def extract_metadata_SEQUENCES(events,run_numb):
 
         seq_subtype = identify_sequence_subtype(position_on_screen[-32:-24])
 
-        print("========== THE SEQUENCE TYPE IS %s ============="%which_seq)
-        print("========== THE SEQUENCE PRESENTED SEQUENCE IS =============")
-        print(position_on_screen[-8:])
-        print("========== THE SEQUENCE SUBTYPE IS %s ============="%seq_subtype)
         sequence_subtype.append([seq_subtype]*96)
 
         struct_seq = struct_df[struct_df['sequence']==which_seq]

@@ -1,3 +1,6 @@
+"""
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
+"""
 import pickle
 from mne.decoding import GeneralizingEstimator
 import numpy as np

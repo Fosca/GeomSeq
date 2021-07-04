@@ -4,26 +4,12 @@
 ===========
 
 The script produce the data used to plot figure 3.
+
+Author: Fosca Al Roumi <fosca.al.roumi@gmail.com>
 """
-import sys
-sys.path.append("/neurospin/meg/meg_tmp/Geom_Seq_Fosca_2017/GeomSeq/")
 
 from GeomSeq_functions import spatial_decoding_funcs
 from GeomSeq_analyses import config
-from GeomSeq_functions import epoching_funcs
-
-# ======================================================================================================================
-# ========== create the epochs objects that will be used for these analyses ============================================
-# ======================================================================================================================
-
-# Here choose the identifier of your subjects
-subject = config.subjects_list[0]
-# epochs data from the primitive part of the experiment
-epoching_funcs.compute_epochs(subject, tmin=-0.2, tmax=0.6, decim=1)
-# from the sequence part of the experiment
-epoching_funcs.compute_epochs(subject, tmin=-0.65, tmax=0.6, decim=1, block_type='sequences')
-# from the localizer part of the experiment
-epoching_funcs.compute_epochs(subject, tmin=-0.2, tmax=0.6, decim=1, block_type='localizer')
 
 # ======================================================================================================================
 # ========== here are the different functions for the decoding of spatial location =====================================
